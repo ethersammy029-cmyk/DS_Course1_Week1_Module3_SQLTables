@@ -55,8 +55,7 @@ pd.read_sql("""SELECT * FROM sqlite_master""", conn)
 # Replace None with your code
 df_boston = pd.read_sql("""
 SELECT 
-    e.firstName, 
-    e.lastName, 
+    e.firstName || ' ' || e.lastName AS contactName, 
     e.jobTitle
 FROM employees e
 JOIN offices o ON e.officeCode = o.officeCode
@@ -80,7 +79,8 @@ SELECT
     o.country
 FROM offices o
 LEFT JOIN employees e ON o.officeCode = e.officeCode
-WHERE e.employeeNumber IS NULL;
+GROUP BY o.officeCode
+HAVING COUNT(e.employeeNumber) = 0;
 """,conn)
 df_zero_emp
 
@@ -241,8 +241,7 @@ SELECT
 FROM offices o
 JOIN employees e ON o.officeCode = e.officeCode
 JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber
-GROUP BY o.officeCode, o.city
-ORDER BY n_customers DESC;
+GROUP BY o.officeCode, o.city;
 """,conn)
 df_customers
 
@@ -261,7 +260,6 @@ df_customers
 # Replace None with your code
 df_under_20 = pd.read_sql("""
 WITH UnderperformingProducts AS (
-    -- Subquery: Identify products ordered by fewer than 20 unique customers
     SELECT od.productCode
     FROM orderdetails od
     JOIN orders o ON od.orderNumber = o.orderNumber
@@ -279,7 +277,8 @@ JOIN offices o ON e.officeCode = o.officeCode
 JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber
 JOIN orders ord ON c.customerNumber = ord.customerNumber
 JOIN orderdetails od ON ord.orderNumber = od.orderNumber
-WHERE od.productCode IN (SELECT productCode FROM UnderperformingProducts);
+WHERE od.productCode IN (SELECT productCode FROM UnderperformingProducts)
+ORDER BY e.employeeNumber;
 """,conn)
 df_under_20
 
@@ -290,5 +289,8 @@ df_under_20
 # Run this cell without changes
 
 conn.close()
+
+# %% [markdown]
+# -- Testing main branch sync
 
 
